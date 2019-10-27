@@ -1,0 +1,138 @@
+<!--This page allows patients to add health records to their current list stored
+    in a Solidity smart contract. It allows allows providers to add records
+    for patients that have authorized them to do so.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add Health Record</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class= "newRecordInfo">
+
+        <label id= "title"></label><br>
+		<label></label><br>
+		
+        <label id= "keyLabel" style= "visibility: hidden">Patient Key</label><br>
+        <input class= "inputField" type= "text" id= "key" value= "" style= "visibility: hidden"><br>
+		<label><br></label>
+		
+        <label>Protected Health Information</label><br>
+        <textarea id= "data" rows= "14" cols= "100"></textarea>
+        
+	</div>
+	
+    <label><br></label>
+	<label><br></label>
+	<button class= "recordButton" id= "record">Add Health Record</button><br>
+    <label><br></label>
+
+	<label id= "recordStatus" style= "font-family: Helvetica; font-size: medium;"></label>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script src= "ActiveUsersAndContracts.js"></script>
+
+<script>
+
+    if (typeof web3 !== 'undefined')
+        web3 = new Web3(web3.currentProvider);
+    else
+        web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+
+    web3.eth.defaultAccount = web3.eth.accounts[activeIndex];
+
+    var MedicalBlockContract = web3.eth.contract(contractABI);
+    var MedicalBlock = MedicalBlockContract.at(contractAddress);
+    var userType;
+
+    window.onload= load();
+
+    // This function determines the type of user at the active blockchain address
+    // and displays corresponding instructional information.
+    function load() {
+
+    var userTypeEvent = MedicalBlock.userType();
+
+    userTypeEvent.watch(function(error, result){
+    if (!error)
+    {
+		userType = result.args.uType;
+
+        //User Type = Patient
+        if (userType == 1)
+        {
+			document.getElementById("title").innerHTML= "Add a Health Record to This Patient Account";
+        }
+
+        //User Type = Provider
+        else if (userType == 2)
+        {
+			document.getElementById("title").innerHTML= "Add a Health Record to a Patient Account";
+			document.getElementById("keyLabel").style.visibility= "visible";
+			document.getElementById("key").style.visibility= "visible";
+        }
+    }
+});
+
+MedicalBlock.getUserType(function(error, result) {
+    if(error)
+        console.error(error);});
+}
+
+var checkAccessEvent = MedicalBlock.checkAccess();
+
+// This event listener is used to detect whether or not a patient's health record
+// was successfully added.
+checkAccessEvent.watch(function(error, result){
+    if (!error)
+    {
+        if (result.args.access == "WrongPatient")
+            document.getElementById("recordStatus").innerHTML= "Error: Patient's May Only Add Their Own Health Records";
+        else if (result.args.access == "NoProviderAccess")
+            document.getElementById("recordStatus").innerHTML= "Error: Provider Was Not Authorized by This Patient Account.";
+        else if (result.args.access == "true")
+            document.getElementById("recordStatus").innerHTML= "A Health Record Was Added. Refresh to Add Another.";
+    }
+});
+
+// This function calls the addHealthRecord() function in the Solidity smart contract
+// to add a patient's health record. A health record is comprised of
+// patient health information (PHI) in text form.
+$("#record").click(function(error, result) {
+
+	if ((userType == 2 && $("#key").val().length == 0 || $("#data").val().length == 0) ||
+		(userType == 1 && $("#data").val().length == 0))
+		document.getElementById("recordStatus").innerHTML= "empty field";
+	else
+	{
+        document.getElementById("record").style.visibility= "hidden";
+        if (userType == 1)
+			MedicalBlock.addHealthRecord(web3.eth.defaultAccount, web3.eth.defaultAccount, 
+				$("#data").val().toString(), {from: web3.eth.defaultAccount, gas: 6720000}, function(error, result) {
+
+                });
+
+        else
+        {
+			MedicalBlock.addHealthRecord(web3.eth.defaultAccount, $("#key").val().toString(), 
+				$("#data").val().toString(), {from: web3.eth.defaultAccount, gas: 6720000}, function(error, result) {
+
+            });
+        
+        }
+	}
+});
+
+</script>
+</body>

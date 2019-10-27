@@ -1,0 +1,114 @@
+body {
+    background-color:#F0F0F0;
+    text-align: center;
+}
+select {
+    text-align: center;
+    height: 100px;
+    width: 1150px;
+    font-size: x-large;
+    font-weight: 700;
+    font-family: Helvetica;
+}
+.centeredbuttons {
+    font-family: 'Helvetica';
+    text-align: center;
+    font-size: x-large;
+    height: 600px;
+    width: 400px;
+    margin: 2%;
+}
+.actionButtons {
+    font-family: 'Helvetica';
+    text-align: center;
+    font-size: x-large;
+    height: 300px;
+    width: 200px;
+    margin: 1%;
+}
+.registryInfo {
+    font-family: Helvetica;
+    font-size: 3em;
+    font-weight: 700;
+    text-align: center;
+}
+.newRegistry {
+    height: 130px;
+    width: 700px;
+    font-family: Helvetica;
+    font-size: 2em;
+    font-weight: 700;
+    text-align: center;
+}
+.newRegistryLabel {
+    font-family: Helvetica;
+    font-size: 2em;
+    font-weight: 700;
+    text-align: center;
+}
+.login {
+    text-align: center;
+    width: 600px;
+    height: 50px;
+    font-family: Helvetica;
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+}
+.inputField {
+    width: 600px;
+    height: 50px;
+    text-align: center;
+    font-family: Helvetica;
+    font-size: large;
+}
+.newRecordInfo {
+    font-family: Helvetica;
+    font-size: 3em;
+    font-weight: 700;
+    text-align: center;
+}
+.recordButton {
+    font-family: Helvetica;
+    font-size: 2em;
+    font-weight: 700;
+    text-align: center;
+    height: 50px;
+    width: 600px;
+}
+.authorization {
+    font-family: Helvetica;
+    font-size: 3em;
+    font-weight: 700;
+    text-align: center;
+}
+.authorizeButton {
+    font-family: Helvetica;
+    font-size: 1em;
+    font-weight: 700;
+    text-align: center;
+    height: 70px;
+    width: 600px;
+}
+.viewing {
+    font-family: Helvetica;
+    font-size: 3em;
+    font-weight: 700;
+    text-align: center;
+}
+.numberInput {
+    text-align: center;
+    width: 60px;
+    height: 50px;
+    text-align: center;
+    font-family: Helvetica;
+    font-size: large;
+}
+.viewButton {
+    text-align: center;
+    font-family: Helvetica;
+    font-size: x-large;
+    font-weight: 700;
+    height: 70px;
+    width: 400px;
+}

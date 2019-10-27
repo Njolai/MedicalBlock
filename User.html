@@ -1,0 +1,104 @@
+<!--This page is used to display the options for a user depending on the type
+	of account registered at their blockchain address.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Account Management</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+
+	<div class= "registryInfo">
+
+		<label></label><br>
+		<label id= "usertype"></label><br>
+		<label></label><br>
+		<label id= "transactions">Choose a Transaction</label><br>
+		<label></label><br>
+
+	</div>
+
+	<button class= "actionButtons" id= "view" style= "visibility: hidden" onclick= "window.location.href= 'C:/MedicalBlock/View.html';"></button>
+
+	<button class= "actionButtons" id= "authorize" style= "visibility: hidden" onclick= "window.location.href= 'C:/MedicalBlock/Authorize.html';">Authorize a Provider</button>
+
+	<button class= "actionButtons" id= "add" style= "visibility: hidden" onclick= "window.location.href= 'C:/MedicalBlock/Add.html';"></button>
+
+    <label id= "userTypeAndAddress"></label>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script src= "ActiveUsersAndContracts.js"></script>
+
+<script>
+
+    if (typeof web3 !== 'undefined')
+        web3 = new Web3(web3.currentProvider);
+    else
+        web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+
+    web3.eth.defaultAccount = web3.eth.accounts[activeIndex];
+
+    var MedicalBlockContract = web3.eth.contract(contractABI);
+
+    var MedicalBlock = MedicalBlockContract.at(contractAddress);
+
+	window.onload= load();
+
+	// This function determines the type of user at the active blockchain address
+	// and displays action choices for the user account.
+    function load() {
+
+		var userTypeEvent = MedicalBlock.userType();
+
+		var eventResult;
+
+		userTypeEvent.watch(function(error, result){
+			if (!error)
+			{
+				eventResult = result.args.uType;
+
+				//User Type = Patient
+				if (eventResult == 1)
+				{
+					document.getElementById("usertype").innerHTML= "User Type: Patient";
+					document.getElementById("authorize").style.visibility= "visible";
+					document.getElementById("view").style.visibility= "visible";
+					document.getElementById("add").style.visibility= "visible";
+					document.getElementById("view").innerHTML= "View Your Health Records";
+					document.getElementById("add").innerHTML= "Add a Health Record";
+				}
+
+				//user Type = Provider
+            	else if (eventResult == 2)
+				{
+					document.getElementById("usertype").innerHTML= "User Type: Provider";
+					document.getElementById("view").style.visibility= "visible";
+					document.getElementById("add").style.visibility= "visible";
+					document.getElementById("view").innerHTML= "View a Patient's Health Records";
+					document.getElementById("add").innerHTML= "Add a Patient's Health Record";
+				}
+
+				//User Not Registered
+				else
+					document.getElementById("transactions").innerHTML= 
+						"Error: User at This Address is Not Registered. Please Register First.";
+			}
+		});
+
+    	MedicalBlock.getUserType(function(error, result) {
+        	if(error)
+            	console.error(error);});
+ 	}
+
+</script>
+</body>

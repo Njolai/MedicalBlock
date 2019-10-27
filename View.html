@@ -1,0 +1,151 @@
+<!--This page is used to view health records belonging to a patient account. All patients
+    can view their own health records. Providers can only view a patient's health records
+    if they have been authorized by the patient.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>View Health Records</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class= "viewing">
+
+        <label id= "title"></label>
+        <label><br></label>
+        <label><br></label>
+        <label id= "keyLabel" style= "visibility: hidden">Patient Key</label><br>
+        <input class= "inputField" type= "text" id= "key" value= "" style= "visibility: hidden"><br>
+        <label><br></label>
+        <label>Health Record Number</label><br>
+        <input class= "numberInput" type= "number" id= "index" value><br>
+
+    </div>
+
+    <label style= "font-size: small"><br></label>
+    <button class= "viewButton" id= "getRecord">Get This Health Record</button><br>
+    <label class= "viewing" id= "recordNumber"></label>
+    <label style= "font-size: medium"><br></label>
+
+    <textarea rows= "14" cols= "100" id= "recordPHI"></textarea>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script src= "ActiveUsersAndContracts.js"></script>
+
+<script>
+
+    if (typeof web3 !== 'undefined')
+        web3 = new Web3(web3.currentProvider);
+    else
+        web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+
+    web3.eth.defaultAccount = web3.eth.accounts[activeIndex];
+
+    var MedicalBlockContract = web3.eth.contract(contractABI);
+
+    var MedicalBlock = MedicalBlockContract.at(contractAddress);
+
+    var userType;
+
+    var index;
+
+    window.onload= load();
+
+    // This function gets the user type at the active blockchain address and displays
+    // corresponding information.
+    function load() {
+
+    var userTypeEvent = MedicalBlock.userType();
+
+    var eventResult;
+
+    userTypeEvent.watch(function(error, result){
+        if (!error)
+        {
+            eventResult = result.args.uType;
+            userType = eventResult;
+
+            //User Type = Patient
+            if (eventResult == 1)
+            {
+                document.getElementById("title").innerHTML= "View Your Health Records";
+            }
+
+            //user Type = Provider
+            else if (eventResult == 2)
+            {
+                document.getElementById("title").innerHTML= "View Health Records for a Key-Referenced Patient";
+                document.getElementById("keyLabel").style.visibility= "visible";
+                document.getElementById("key").style.visibility= "visible";
+            }
+
+        }
+    });
+
+    MedicalBlock.getUserType(function(error, result) {
+        if(error)
+            console.error(error);});
+    }
+
+    var authorized = true;
+
+    var checkAccessEvent = MedicalBlock.checkAccess();
+
+    // This event listener is activated when a provider's authorization status is checked.
+    checkAccessEvent.watch(function(error, result){
+        if (!error)
+        {
+            if (!(result.args.access == "true"))
+            {
+                document.getElementById("recordNumber").innerHTML= 
+                    "Error: Provider Was Not Authorized by this Patient Account";
+                document.getElementById("recordPHI").innerHTML= "";
+            }
+        }
+    });
+
+    var recordEvent = MedicalBlock.getRecord();
+
+    // This function is used to get the health record of a patient at a specific index
+    // in their list of records.
+    $("#getRecord").click(function(error, result){
+
+        index = ($("#index").val() - 1);
+
+        if (userType == 1)
+        {
+            MedicalBlock.getThisHealthRecord(web3.eth.defaultAccount, web3.eth.defaultAccount,
+                index, {from: web3.eth.defaultAccount, gas: 6000000}, function(error, result){});
+        }
+        else if (userType == 2)
+        {
+            MedicalBlock.getThisHealthRecord(web3.eth.defaultAccount, $("#key").val().toString(),
+                index, {from: web3.eth.defaultAccount, gas: 6000000}, function(error, result){});
+        }
+
+        recordEvent.watch(function(error, recordResults) {
+            if (recordResults.args.data == "Invalid")
+            {
+                document.getElementById("recordNumber").innerHTML= "A Health Record at This Number Does Not Exist.";
+                document.getElementById("recordPHI").innerHTML= "";
+            }
+            else
+            {
+                document.getElementById("recordNumber").innerHTML= "Health Record Number: " + (index + 1);
+                document.getElementById("recordPHI").innerHTML= recordResults.args.data;
+            }
+        });
+    });
+
+</script>
+</body>

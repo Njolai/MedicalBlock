@@ -1,0 +1,171 @@
+<!--This page can be accessed by new users to register their blockchain address
+	in the EHR system.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Register</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class= "registryInfo">
+
+        <label></label><br>
+        <label>Choose Patient or Provider</label><br>
+        <label></label><br>
+        
+    </div>
+
+    <select id= "selection" onchange= "DisplayChoice(this.selectedindex);">
+        <option value= "patient">Patient</option>
+        <option value= "provider">Provider</option>
+    </select>
+
+    <div class= "registryInfo"><br></div>
+
+    <button class= "newRegistry" id= "register">Register a New Patient</button>
+
+    <div class= "registryInfo"><br></div>
+
+	<label class= "newRegistryLabel" id= "newRegistryInfo"></label><br>
+	
+	<label class= "newRegistryLabel" id= "key"></label>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script src= "ActiveUsersAndContracts.js"></script>
+
+<script>
+
+    if (typeof web3 !== 'undefined')
+        web3 = new Web3(web3.currentProvider);
+    else
+        web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+
+    web3.eth.defaultAccount = web3.eth.accounts[activeIndex];
+
+    var MedicalBlockContract = web3.eth.contract(contractABI);
+
+    var MedicalBlock = MedicalBlockContract.at(contractAddress);
+
+    var numUsers;
+
+    var userType = "patient";
+
+	// This function is used to switch the text on the register button. Its text
+	// corresponds to the current user type choice in the select element.
+    function DisplayChoice(choice) {
+        if (document.getElementById("register").innerHTML == "Register a New Patient")
+        {
+            document.getElementById("register").innerHTML= "Register a New Provider";
+            userType = "provider";
+        }
+        else
+        {
+            document.getElementById("register").innerHTML= "Register a New Patient";
+            userType = "patient";
+        }
+    }
+
+	// This is where users are registered in the system. Before a user is registered, the
+	// program checks to see if they are already registered. Once they are registered, their
+	// user type and account information is fixed at their blockchain address.
+    $("#register").click(function() {
+
+		//Registering as patient
+        if (userType == "patient")
+        {
+			//event object
+			var registryEvent = MedicalBlock.checkRegistry();
+
+			//variable to store registry status
+			var eventResult = false;
+
+			//event watcher for checkNextRegistry() function
+			registryEvent.watch(function(error, result){
+			if (!error)
+			{
+				eventResult = result.args.returnValue;
+				//Display registration result
+				if (eventResult)
+					document.getElementById("newRegistryInfo").innerHTML= 
+						"Error: User at This Address is Already Registered";
+				else
+				{
+					document.getElementById("newRegistryInfo").innerHTML= "Successfully registered a Patient";
+					document.getElementById("key").innerHTML= "Public Key: " + web3.eth.defaultAccount;
+				}
+			}
+			else
+				console.log();
+			});
+
+			//checkNextRegistry() call,
+			//checks to see if the user address is already in the system
+			MedicalBlock.checkNextRegistry(function(error, result) {
+			if (error)
+				console.log(error);
+			});
+
+			document.getElementById("register").style.visibility= "hidden";
+
+			//Make the call to registerPatient()
+            MedicalBlock.registerPatient(web3.eth.defaultAccount, 
+				{from: web3.eth.defaultAccount, gas: 3000000}, function(error, result){});
+		}
+
+		//Registering as provider
+        else
+        {
+			//event object
+			var registryEvent = MedicalBlock.checkRegistry();
+
+			//variable to store registry status
+			var eventResult;
+
+			//event watcher for checkNextRegistry() function
+			registryEvent.watch(function(error, result){
+			if (!error)
+			{
+				eventResult = result.args.returnValue;
+				//Display registration result
+				if (eventResult)
+					document.getElementById("newRegistryInfo").innerHTML= 
+						"Error: User at This Address is Already Registered";
+				else
+				{
+					document.getElementById("newRegistryInfo").innerHTML= "Successfully registered a Provider";
+					document.getElementById("key").innerHTML= "Public Key: " + web3.eth.defaultAccount;
+				}
+			}
+			else
+				console.log();
+			});
+
+			//checkNextRegistry() call,
+			//checks to see if the user address is already in the system
+			MedicalBlock.checkNextRegistry(function(error, result) {
+			if (error)
+				console.log(error);
+			});
+
+			document.getElementById("register").style.visibility= "hidden";
+
+			//Make the call to registerProvider()
+			MedicalBlock.registerProvider(web3.eth.defaultAccount, 
+				{from: web3.eth.defaultAccount, gas: 3000000}, function(error, result){});
+
+        }
+    });
+
+</script>
+</body>

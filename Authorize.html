@@ -1,0 +1,69 @@
+<!--This page allows patient users to authorize providers for viewing and
+    their health records.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Authorize a Provider</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+
+    <label class= "authorization">Authorize a Provider</label>
+    <label></label><br>
+    <label></label><br>
+    
+    <label style= "font-family: Helvetica; font-size: large; text-align: center">
+        Give a Key-Referenced Provider Permission to Add and View Your Health Records.</label>
+
+    <div class= "authorization">
+
+        <label><br></label>
+        <label><br></label>
+        <label>Provider Key</label><br>
+        <input class= "inputField" type= "text" id= "key" value= ""><br>
+        <label><br></label>
+        <button class= "authorizeButton" id= "authorize">Authorize Provider</button><br>
+        <label><br></label>
+        <label id= "authorizationStatus"></label>
+
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+<script src= "ActiveUsersAndContracts.js"></script>
+
+<script>
+
+    if (typeof web3 !== 'undefined')
+        web3 = new Web3(web3.currentProvider);
+    else
+        web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+
+    web3.eth.defaultAccount = web3.eth.accounts[activeIndex];
+
+    var MedicalBlockContract = web3.eth.contract(contractABI);
+
+    var MedicalBlock = MedicalBlockContract.at(contractAddress);
+
+    // This function authorizes a key-referenced provider to add or view health records for the patient
+    // at the active blockchain address.
+    $("#authorize").click(function(error, result) {
+        MedicalBlock.authorizeProvider(web3.eth.defaultAccount, $("#key").val().toString(), 
+				{from: web3.eth.defaultAccount, gas: 6000000}, function(error, result) {
+                    document.getElementById("authorizationStatus").innerHTML= 
+                        "A Provider Was Authorized. Refresh to Authorize Another."
+                    document.getElementById("authorize").style.visibility= "hidden";
+				});
+    });
+
+</script>
+</body>
